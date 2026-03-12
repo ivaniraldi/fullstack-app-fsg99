@@ -1,52 +1,76 @@
-import { useEffect, useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import reactLogo from "./assets/react.svg";
+import viteLogo from "/vite.svg";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
-  const [items, setItems] = useState(null)
+  const [count, setCount] = useState(0);
+  const [items, setItems] = useState(null);
+  const [name, setName] = useState("")
+  const [price, setPrice] = useState(0)
 
+  const getProducts = async () => {
+    console.log(import.meta.env.VITE_BACKEND_URL);
+    const res = await fetch(import.meta.env.VITE_BACKEND_URL + "/items");
+    const data = await res.json();
+    setItems(data);
+  };
 
-  const getProducts = async () =>{
-    console.log(import.meta.env.VITE_BACKEND_URL)
-    const res = await fetch(import.meta.env.VITE_BACKEND_URL)
-    const data = await res.json()
-    setItems(data)
+  const handleSubmit= async (e)=>{
+    e.preventDefault()
+    let newItem = {
+      name, price
+    }
+
+   try {
+     await fetch(import.meta.env.VITE_BACKEND_URL + "/items", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(newItem)
+    })
+    getProducts()
+   } catch (error) {
+    alert(error.message)
+   }
+
   }
 
-  useEffect(()=>{
+  useEffect(() => {
+    getProducts();
+  }, []);
+
+
+  const handleDelete = async(id)=>{
+    await fetch(import.meta.env.VITE_BACKEND_URL + "/items/" + id, {
+      method: "DELETE"
+    } )
     getProducts()
-  },[])
+  }
 
   return (
     <>
       <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        {items ? (
+          items.map((i) => {
+            return <p key={i.id}>{i.name}, ${i.price} <button onClick={()=>handleDelete(i.id)}>eliminar</button> <button>editar</button></p>;
+          })
+        ) : (
+          <p>Cargando productos...</p>
+        )}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <div className="read-the-docs">
-        {items? 
-        items.forEach(element => {
-          return <p>{element.name}</p>
-        })
-      : <p>No hay items</p>}
+
+      <div>
+        <h2>Nuevo producto:</h2>
+        <form action="submit" onSubmit={(e)=>handleSubmit(e)}>
+          <input value={name} onChange={(e)=>setName(e.target.value)} type="text" />
+          <input value={price} onChange={(e)=>setPrice(e.target.value)} type="number" />
+          <button>Enviar</button>
+        </form>
       </div>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
