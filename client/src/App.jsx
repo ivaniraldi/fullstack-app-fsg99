@@ -10,10 +10,15 @@ function App() {
   const [price, setPrice] = useState(0)
 
   const getProducts = async () => {
-    console.log(import.meta.env.VITE_BACKEND_URL);
+    try {
+      console.log(import.meta.env.BACKEND_URL)
+      console.log(import.meta.env.VITE_BACKEND_URL);
     const res = await fetch(import.meta.env.VITE_BACKEND_URL + "/items");
     const data = await res.json();
     setItems(data);
+    } catch (error) {
+      console.log(error.message)
+    }
   };
 
   const handleSubmit= async (e)=>{
