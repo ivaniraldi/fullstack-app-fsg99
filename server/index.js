@@ -12,9 +12,10 @@ app.use(express.json());
 app.use(cors());
 
 const reporte = async (req, res, next) =>{
-  const log = `${req.method} ${req.url} En la fecha ${new Date().toLocaleString()}\n`;
-  let previusLogs = fs.readFileSync("logs.log", "utf-8");
-  fs.writeFileSync("logs.log", previusLogs + log);
+console.log(`${req.method} ${req.url} En la fecha ${new Date().toLocaleString()}`);
+  //const log = `${req.method} ${req.url} En la fecha ${new Date().toLocaleString()}\n`;
+  //let previusLogs = fs.readFileSync("logs.log", "utf-8");
+  //fs.writeFileSync("logs.log", previusLogs + log);
   next()
 }
 app.use(reporte)
