@@ -1,13 +1,27 @@
 const express = require("express");
+const fs = require("fs");
 const cors = require("cors");
 const pool = require("./database/db");
+const { getItems, getFilteredItems } = require("./consultas");
 
 const app = express();
+
+
 
 app.use(express.json());
 app.use(cors());
 
+const reporte = async (req, res, next) =>{
+  const log = `${req.method} ${req.url} En la fecha ${new Date().toLocaleString()}\n`;
+  let previusLogs = fs.readFileSync("logs.log", "utf-8");
+  fs.writeFileSync("logs.log", previusLogs + log);
+  next()
+}
+app.use(reporte)
+
 const PORT = 3000;
+
+
 
 app.listen(PORT, () => {
   console.log("💻 Servidor encendido y funcionando el puerto " + PORT);
@@ -15,13 +29,27 @@ app.listen(PORT, () => {
 
 app.get("/items", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM item");
-    res.json(result.rows);
+   
+    const items = await getItems(req.query);
+    res.json(items);
   } catch (error) {
     console.error("❌ Error en la consulta GET /items: " + error);
     res.status(500).json({
       error: error.code,
       message: error.message,
+    });
+  }
+});
+
+app.get("/items/filter", async(req, res) =>{
+  try {
+    const items = await getFilteredItems(req.query);
+    res.json(items);
+  } catch (error) {
+    console.error("❌ Error en la consulta GET /items/filter: " + error);
+    res.status(500).json({
+      error: error.code,
+      message: error.message, 
     });
   }
 });
