@@ -1,5 +1,25 @@
 const pool = require("./database/db");
 const format = require('pg-format');
+const bcrypt = require("bcryptjs");
+
+
+const verificarCredenciales = async (email, password) => {
+ const consulta = "SELECT * FROM users WHERE email = $1";
+ const values = [email];
+ const result = await pool.query(consulta, values);
+
+
+
+ if (!result.rowCount) throw { code: 404, message: "No se encontró ningún usuario con estas credenciales" };
+
+ const isMatch = await bcrypt.compare(password, result.rows[0].password);
+
+ if(isMatch){
+    return result.rows[0]
+ }else{
+    throw { code: 401, message: "Contraseña incorrecta" }
+ }
+}
 
 const getItems = async ({limit = 3, order_by = "id_ASC", page = 0 }) =>{
 try {
@@ -14,7 +34,9 @@ try {
 
     const hateoas = result.rows.map((item) =>{
         return {
+            id: item.id,
             name: item.name,
+            price: item.price,
             url: `https://fullstack-app-fsg99-backend.onrender.com/items/${item.id}`
         }
     })
@@ -49,7 +71,24 @@ const getFilteredItems = async ({max_price, min_price}) =>{
     return result.rows;
 }
 
+
+const register = async (email, password) =>{
+    try {
+        let consulta = "INSERT INTO users (email, password, role) values ($1, $2, $3) RETURNING *"
+        let role = email == "admin@test.com" ? "admin" : "user";
+        let values = [email, password, role]
+        const result = await pool.query(consulta, values)
+        return result.rows[0]
+    } catch (error) {
+        console.error("Error al registrar: ", error)
+        return { code: error.code, message: error.message }
+    }
+
+}
+
 module.exports = {
     getItems,
-    getFilteredItems
+    verificarCredenciales,
+    getFilteredItems,
+    register
 }
