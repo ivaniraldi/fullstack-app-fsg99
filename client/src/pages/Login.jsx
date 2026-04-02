@@ -1,0 +1,80 @@
+import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate, Link } from "react-router-dom";
+import { Card, Form, Button, Container, Row, Col, Alert, FloatingLabel } from "react-bootstrap";
+
+const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    const result = await login(email, password);
+    if (result.success) {
+      navigate("/");
+    } else {
+      setError(result.message);
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Container className="d-flex align-items-center justify-content-center pt-5 animate-fade-in">
+      <Row className="w-100 justify-content-center">
+        <Col md={8} lg={5} xl={4}>
+          <Card className="auth-card border-0 shadow-lg overflow-hidden">
+            <div className="bg-deep-purple p-4 text-center">
+              <h2 className="text-white fw-bold mb-1">BIENVENIDO</h2>
+              <p className="text-white-50 small mb-0">Ingresa a tu cuenta para continuar</p>
+            </div>
+            <Card.Body className="p-4 p-lg-5">
+              {error && <Alert variant="danger" className="border-0 shadow-sm small py-2 bg-danger text-white">{error}</Alert>}
+              <Form onSubmit={handleSubmit}>
+                <FloatingLabel controlId="loginEmail" label="Email" className="mb-3 text-secondary">
+                  <Form.Control 
+                    type="email" 
+                    placeholder="name@example.com" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    required 
+                    className="rounded-3 border-0 bg-lighter-dark"
+                  />
+                </FloatingLabel>
+                
+                <FloatingLabel controlId="loginPassword" label="Contraseña" className="mb-4 text-secondary">
+                  <Form.Control 
+                    type="password" 
+                    placeholder="Contraseña" 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    required 
+                    className="rounded-3 border-0 bg-lighter-dark"
+                  />
+                </FloatingLabel>
+
+                <Button variant="accent" type="submit" className="w-100 py-3 fw-bold text-white mb-3 shadow-sm rounded-pill transition" disabled={loading}>
+                  {loading ? "Iniciando..." : "Iniciar Sesión"}
+                </Button>
+                
+                <div className="text-center mt-4">
+                  <p className="text-secondary small">
+                    ¿No tienes una cuenta? <Link to="/register" className="text-accent fw-bold text-decoration-none transition">Regístrate</Link>
+                  </p>
+                </div>
+              </Form>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
+  );
+};
+
+export default Login;

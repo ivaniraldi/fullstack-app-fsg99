@@ -122,7 +122,7 @@ app.get("/items/:id", async (req, res) => {
   res.json(result.rows);
 });
 
-app.post("/items", authMiddleware, async (req, res) => {
+app.post("/items", async (req, res) => {
   try {
     const { name, price } = req.body;
     const values = [name, price];
@@ -140,7 +140,7 @@ app.post("/items", authMiddleware, async (req, res) => {
   }
 });
 
-app.put("/items/:id", async (req, res) => {
+app.put("/items/:id", verificarAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { name, price } = req.body;
