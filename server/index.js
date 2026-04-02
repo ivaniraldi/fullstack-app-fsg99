@@ -9,8 +9,6 @@ const bcrypt = require("bcryptjs");
 
 const { authMiddleware, verificarAdmin } = require("./middlewares/auth");
 
-
-
 const app = express();
 
 app.use(express.json());
@@ -127,10 +125,10 @@ app.post("/items", async (req, res) => {
     const { name, price } = req.body;
     const values = [name, price];
     const result = await pool.query(
-      "INSERT INTO item (name, price) VALUES ($1, $2)",
+      "INSERT INTO item (name, price) VALUES ($1, $2) RETURNING *",
       values,
     );
-    res.status(201).send("Producto añadido con éxito!");
+    res.status(201).json({ message: "Producto creado con éxito!", item: result.rows[0] });
   } catch (error) {
     console.error("❌ Error en la consulta POST /items: " + error);
     res.status(500).json({
@@ -140,15 +138,15 @@ app.post("/items", async (req, res) => {
   }
 });
 
-app.put("/items/:id", verificarAdmin, async (req, res) => {
+app.put("/items/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { name, price } = req.body;
 
-    let consulta = "UPDATE item SET name = $1, price = $2 WHERE id = $3";
+    let consulta = "UPDATE item SET name = $1, price = $2 WHERE id = $3 RETURNING *";
     let values = [name, price, id];
     const result = await pool.query(consulta, values);
-    res.send("Producto actualizado con éxito!");
+    res.status(200).json({ message: "Producto actualizado con éxito!", item: result.rows[0] });
   } catch (error) {
     console.error("❌ Error en la consulta PUT /items: " + error);
     res.status(500).json({
@@ -158,12 +156,15 @@ app.put("/items/:id", verificarAdmin, async (req, res) => {
   }
 });
 
-app.delete("/items/:id", verificarAdmin, async (req, res) => {
+app.delete("/items/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     let consulta = "DELETE from item where id = $1";
     let values = [id];
     const result = await pool.query(consulta, values);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Producto no encontrado" });
+    }
     res.json({ message: "Producto eliminado con éxito!" });
   } catch (error) {
     console.error("❌ Error en la consulta DELETE /items: " + error);
@@ -173,3 +174,6 @@ app.delete("/items/:id", verificarAdmin, async (req, res) => {
     });
   }
 });
+
+
+module.exports = app

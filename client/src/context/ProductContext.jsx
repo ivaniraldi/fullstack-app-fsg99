@@ -11,7 +11,7 @@ export const ProductProvider = ({ children }) => {
   const getProducts = async () => {
     setLoading(true);
     try {
-      const res = await fetch(import.meta.env.VITE_BACKEND_URL + "/items");
+      const res = await fetch(import.meta.env.VITE_BACKEND_URL + "/items?limit=999999");
       const data = await res.json();
       setItems(data.result || []);
     } catch (error) {
